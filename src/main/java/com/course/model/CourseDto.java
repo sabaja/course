@@ -9,4 +9,6 @@ public class CourseDto {
     private String name;
 
     private String courseDescription;
+
+    private Double ratingValue;
 }

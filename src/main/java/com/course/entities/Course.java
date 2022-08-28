@@ -1,13 +1,18 @@
 package com.course.entities;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.io.Serializable;
 
+
+@Getter
+@Setter
+@ToString
 @Entity
 @Table(name = "course")
-@Data
 public class Course implements Serializable {
 
     @Id
