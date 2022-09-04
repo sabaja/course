@@ -1,10 +1,7 @@
 package com.course.event;
 
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.io.Serializable;
 
@@ -13,6 +10,7 @@ import java.io.Serializable;
  */
 @RequiredArgsConstructor
 @Getter
+@Setter
 @ToString
 @EqualsAndHashCode
 public class RatingEventMessage implements Serializable {
