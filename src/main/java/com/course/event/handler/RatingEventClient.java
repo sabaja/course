@@ -34,7 +34,7 @@ public class RatingEventClient {
     @Scheduled(fixedDelay = 3000, initialDelay = 1500)
     public RatingEventMessage sendWithFuture(RatingDto dto) {
         RatingEventMessage ratingEventMessage = new RatingEventMessage();
-        log.info("Client sending fo Rating request");
+        log.info("Client starts sending Rating request");
         ListenableFuture<RatingEventMessage> listenableFuture =
                 asyncRabbitTemplate.convertSendAndReceiveAsType(
                         directExchange.getName(),
