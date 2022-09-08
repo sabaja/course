@@ -1,15 +1,11 @@
 package com.course.controller;
 
-import com.course.entities.Course;
 import com.course.model.CourseDto;
 import com.course.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -28,5 +24,10 @@ public class CourseController {
     @GetMapping("/list")
     public ResponseEntity<List<CourseDto>> getCourses() {
         return new ResponseEntity<>(courseService.getCourses(), HttpStatus.OK);
+    }
+
+    @PutMapping("/course/rating/{id}")
+    public ResponseEntity<CourseDto> putRatingCourse(@RequestBody CourseDto courseDto, @PathVariable Long id) {
+        return new ResponseEntity<>(courseService.putRatingCourses(courseDto, id), HttpStatus.OK);
     }
 }
