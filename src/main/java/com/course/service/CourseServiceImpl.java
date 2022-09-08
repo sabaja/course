@@ -47,7 +47,7 @@ public class CourseServiceImpl implements CourseService {
                     .filter(Objects::nonNull)
                     .map(courseMapper::courseToCourseDto)
                     .map(this::mappingRatingValue)
-                    .collect(Collectors.toList());
+                    .toList();
         }
         return List.of(createEmptyCourse());
     }
