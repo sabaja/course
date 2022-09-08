@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CourseServiceImpl implements CourseService {
@@ -30,7 +31,7 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public CourseDto findCourseById(Long id) {
         if (id != null && id.compareTo(0L) > 0) {
-            final Optional<Course> courseResult = courseRepository.findById(id);
+            final Optional<Course> courseResult = retreiveCourseFromDB(id);
             return courseResult.map(courseMapper::courseToCourseDto)
                     .map(this::mappingRatingValue)
                     .orElseGet(this::createEmptyCourse);
@@ -46,9 +47,30 @@ public class CourseServiceImpl implements CourseService {
                     .filter(Objects::nonNull)
                     .map(courseMapper::courseToCourseDto)
                     .map(this::mappingRatingValue)
-                    .toList();
+                    .collect(Collectors.toList());
         }
         return List.of(createEmptyCourse());
+    }
+
+    @Override
+    public CourseDto putRatingCourses(CourseDto courseDto, Long id) {
+        if (isCourseRatingRequestConsistent(courseDto, id)) {
+            return modifyRatingCourse(courseDto, id);
+
+        }
+        return createEmptyCourse();
+    }
+
+    private CourseDto modifyRatingCourse(CourseDto courseDto, Long id) {
+        return courseDto;
+    }
+
+    private Optional<Course> retreiveCourseFromDB(Long id) {
+        return courseRepository.findById(id);
+    }
+
+    private boolean isCourseRatingRequestConsistent(CourseDto courseDto, Long id) {
+        return Optional.ofNullable(courseDto).map(CourseDto::getCourseId).orElseGet(() -> -1L).compareTo(id != null ? id : 0) == 0;
     }
 
     private CourseDto mappingRatingValue(CourseDto courseDto) {
