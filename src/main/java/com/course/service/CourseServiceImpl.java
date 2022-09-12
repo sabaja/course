@@ -80,7 +80,9 @@ public class CourseServiceImpl implements CourseService {
     }
 
     private boolean isCourseRatingRequestConsistent(CourseDto courseDto, Long id) {
-        return Optional.ofNullable(courseDto).map(CourseDto::getCourseId).orElseGet(() -> -1L).compareTo(id != null ? id : 0) == 0;
+        boolean isCourseId = Optional.ofNullable(courseDto).map(CourseDto::getCourseId).orElseGet(() -> -1L).compareTo(id != null ? id : 0) == 0;
+        boolean isRatingValue = Optional.ofNullable(courseDto).map(CourseDto::getRatingValue).isPresent();
+        return isCourseId && isRatingValue;
     }
 
     private CourseDto mappingRatingValue(CourseDto courseDto) {
