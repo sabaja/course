@@ -63,7 +63,8 @@ public class CourseServiceImpl implements CourseService {
     }
 
     private CourseDto modifyRatingCourse(CourseDto courseDto, Long id) {
-        RatingDto ratingDto = this.ratingWebClient.modifyRatingValue(createRatingDto(courseDto), id);
+        RatingDto ratingDto = Optional.ofNullable( this.ratingWebClient.modifyRatingValue(createRatingDto(courseDto), id))
+                .orElseGet(() -> RatingDto.builder().build());
         courseDto.setRatingValue(ratingDto.getRatingValue());
         return courseDto;
     }
