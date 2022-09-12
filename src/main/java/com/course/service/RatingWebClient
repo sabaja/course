@@ -23,6 +23,7 @@ public class RatingWebClient {
                 .build();
     }
 
+    /* https://www.amitph.com/spring-webclient-read-json-data/ */
     public RatingDto modifyRatingValue(RatingDto dto, Long courseId) {
         Mono<RatingDto> ratingDtoMono = webClient.put()
                 .uri(updateUrl, courseId)
@@ -30,6 +31,8 @@ public class RatingWebClient {
                 .retrieve()
                 .bodyToMono(RatingDto.class);
 
-        return ratingDtoMono.block();
+        return ratingDtoMono
+                .share()
+                .block();
     }
 }
