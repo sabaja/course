@@ -10,5 +10,6 @@ public interface CourseMapper {
 
     @Mapping(target = "courseId", source = "id")
     @Mapping(target = "courseDescription", source = "description")
+    @Mapping(target = "ratingValue", ignore = true)
     CourseDto courseToCourseDto(Course course);
 }
