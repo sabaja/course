@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class CourseServiceImpl implements CourseService {
@@ -27,6 +26,9 @@ public class CourseServiceImpl implements CourseService {
     private CourseRepository courseRepository;
     @Autowired
     private RatingEventClient ratingEventClient;
+
+    @Autowired
+    private RatingWebClient ratingWebClient;
 
     @Override
     public CourseDto findCourseById(Long id) {
@@ -56,13 +58,21 @@ public class CourseServiceImpl implements CourseService {
     public CourseDto putRatingCourses(CourseDto courseDto, Long id) {
         if (isCourseRatingRequestConsistent(courseDto, id)) {
             return modifyRatingCourse(courseDto, id);
-
         }
         return createEmptyCourse();
     }
 
     private CourseDto modifyRatingCourse(CourseDto courseDto, Long id) {
+        RatingDto ratingDto = this.ratingWebClient.modifyRatingValue(createRatingDto(courseDto), id);
+        courseDto.setRatingValue(ratingDto.getRatingValue());
         return courseDto;
+    }
+
+    private RatingDto createRatingDto(CourseDto courseDto) {
+        return RatingDto.builder()
+                .ratingValue(courseDto.getRatingValue())
+                .courseId(courseDto.getCourseId())
+                .build();
     }
 
     private Optional<Course> retreiveCourseFromDB(Long id) {
