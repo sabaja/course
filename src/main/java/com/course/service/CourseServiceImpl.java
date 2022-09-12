@@ -7,6 +7,7 @@ import com.course.mapper.CourseMapper;
 import com.course.model.CourseDto;
 import com.course.model.RatingDto;
 import com.course.repositories.CourseRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class CourseServiceImpl implements CourseService {
 
@@ -63,8 +65,9 @@ public class CourseServiceImpl implements CourseService {
     }
 
     private CourseDto modifyRatingCourse(CourseDto courseDto, Long id) {
-        RatingDto ratingDto = Optional.ofNullable( this.ratingWebClient.modifyRatingValue(createRatingDto(courseDto), id))
+        RatingDto ratingDto = Optional.ofNullable(this.ratingWebClient.modifyRatingValue(createRatingDto(courseDto), id))
                 .orElseGet(() -> RatingDto.builder().build());
+        log.info("Updating rating of courseId: [{}] with value: [{}]", id, ratingDto.getRatingValue());
         courseDto.setRatingValue(ratingDto.getRatingValue());
         return courseDto;
     }
