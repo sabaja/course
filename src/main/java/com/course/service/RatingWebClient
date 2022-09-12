@@ -1,0 +1,35 @@
+package com.course.service;
+
+import com.course.model.RatingDto;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+
+@Service
+public class RatingWebClient {
+
+    private final WebClient webClient;
+
+    @Value("${web.client.rating.base.url}")
+    private String baseUrl;
+
+    @Value("${web.client.rating.update.url}")
+    private String updateUrl;
+
+    public RatingWebClient(WebClient.Builder webClientBuilder) {
+        this.webClient = webClientBuilder
+                .baseUrl(baseUrl)
+                .build();
+    }
+
+    public RatingDto modifyRatingValue(RatingDto dto, Long courseId) {
+        Mono<RatingDto> ratingDtoMono = webClient.put()
+                .uri(updateUrl, courseId)
+                .body(Mono.just(dto), RatingDto.class)
+                .retrieve()
+                .bodyToMono(RatingDto.class);
+
+        return ratingDtoMono.block();
+    }
+}
