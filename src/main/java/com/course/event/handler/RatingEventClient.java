@@ -6,6 +6,8 @@ import com.course.model.RatingDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,25 +20,23 @@ import java.util.concurrent.ExecutionException;
 @Slf4j
 @Component
 public class RatingEventClient {
+    @Autowired
+    @Qualifier("ratingStatusAsyncRabbitTemplate")
+    private AsyncRabbitTemplate ratingStatusAsyncRabbitTemplate;
 
-    private final AsyncRabbitTemplate asyncRabbitTemplate;
+    @Autowired
+    private DirectExchange directExchange;
 
-    private final DirectExchange directExchange;
-
-    @Value("${rating.routing.key}")
+    @Value("${rating.status.routing.key}")
     private String routingKey;
 
-    public RatingEventClient(AsyncRabbitTemplate asyncRabbitTemplate, DirectExchange directExchange) {
-        this.asyncRabbitTemplate = asyncRabbitTemplate;
-        this.directExchange = directExchange;
-    }
 
     @Scheduled(fixedDelay = 3000, initialDelay = 1500)
     public RatingEventMessage sendWithFuture(RatingDto dto) {
         RatingEventMessage ratingEventMessage = new RatingEventMessage();
         log.info("Client starts sending Rating request");
         ListenableFuture<RatingEventMessage> listenableFuture =
-                asyncRabbitTemplate.convertSendAndReceiveAsType(
+                ratingStatusAsyncRabbitTemplate.convertSendAndReceiveAsType(
                         directExchange.getName(),
                         routingKey,
                         dto,
