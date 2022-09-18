@@ -7,6 +7,7 @@ import com.course.mapper.CourseMapper;
 import com.course.model.CourseDto;
 import com.course.model.RatingDto;
 import com.course.repositories.CourseRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +16,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class CourseServiceImpl implements CourseService {
 
@@ -27,6 +28,9 @@ public class CourseServiceImpl implements CourseService {
     private CourseRepository courseRepository;
     @Autowired
     private RatingEventClient ratingEventClient;
+
+    @Autowired
+    private RatingWebClient ratingWebClient;
 
     @Override
     public CourseDto findCourseById(Long id) {
@@ -56,13 +60,23 @@ public class CourseServiceImpl implements CourseService {
     public CourseDto putRatingCourses(CourseDto courseDto, Long id) {
         if (isCourseRatingRequestConsistent(courseDto, id)) {
             return modifyRatingCourse(courseDto, id);
-
         }
         return createEmptyCourse();
     }
 
     private CourseDto modifyRatingCourse(CourseDto courseDto, Long id) {
+        RatingDto ratingDto = Optional.ofNullable(this.ratingWebClient.modifyRatingValue(createRatingDto(courseDto), id))
+                .orElseGet(() -> RatingDto.builder().build());
+        log.info("Updating rating of courseId: [{}] with value: [{}]", id, ratingDto.getRatingValue());
+        courseDto.setRatingValue(ratingDto.getRatingValue());
         return courseDto;
+    }
+
+    private RatingDto createRatingDto(CourseDto courseDto) {
+        return RatingDto.builder()
+                .ratingValue(courseDto.getRatingValue())
+                .courseId(courseDto.getCourseId())
+                .build();
     }
 
     private Optional<Course> retreiveCourseFromDB(Long id) {
@@ -70,7 +84,9 @@ public class CourseServiceImpl implements CourseService {
     }
 
     private boolean isCourseRatingRequestConsistent(CourseDto courseDto, Long id) {
-        return Optional.ofNullable(courseDto).map(CourseDto::getCourseId).orElseGet(() -> -1L).compareTo(id != null ? id : 0) == 0;
+        boolean isCourseId = Optional.ofNullable(courseDto).map(CourseDto::getCourseId).orElseGet(() -> -1L).compareTo(id != null ? id : 0) == 0;
+        boolean isRatingValue = Optional.ofNullable(courseDto).map(CourseDto::getRatingValue).isPresent();
+        return isCourseId && isRatingValue;
     }
 
     private CourseDto mappingRatingValue(CourseDto courseDto) {
