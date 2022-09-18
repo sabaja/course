@@ -40,12 +40,12 @@ class CourseServiceImplTest {
         when(repository.findById(anyLong())).thenReturn(Optional.of(course));
         final CourseDto dto = createCourseDto();
         when(courseMapper.courseToCourseDto(any())).thenReturn(dto);
-        when(ratingEventClient.sendWithFuture(any())).thenReturn(creaRatingEventMessage());
+        when(ratingEventClient.sendRatingStausWithFuture(any())).thenReturn(creaRatingEventMessage());
 
         final CourseDto courseDto = service.findCourseById(1L);
         verify(repository, times(1)).findById(anyLong());
         verify(courseMapper, times(1)).courseToCourseDto(any());
-        verify(ratingEventClient, times(1)).sendWithFuture(any());
+        verify(ratingEventClient, times(1)).sendRatingStausWithFuture(any());
         assertNotNull(courseDto);
     }
 
@@ -55,11 +55,11 @@ class CourseServiceImplTest {
         when(repository.findAll()).thenReturn(courses);
         final CourseDto dto = createCourseDto();
         when(courseMapper.courseToCourseDto(any())).thenReturn(dto);
-        when(ratingEventClient.sendWithFuture(any())).thenReturn(creaRatingEventMessage());
+        when(ratingEventClient.sendRatingStausWithFuture(any())).thenReturn(creaRatingEventMessage());
         final List<CourseDto> courseDtos = service.getCourses();
         verify(repository, times(1)).findAll();
         verify(courseMapper, times(1)).courseToCourseDto(any());
-        verify(ratingEventClient, times(1)).sendWithFuture(any());
+        verify(ratingEventClient, times(1)).sendRatingStausWithFuture(any());
         assertNotNull(courseDtos);
     }
 

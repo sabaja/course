@@ -20,15 +20,26 @@ public class RabbitMQConfiguration {
     @Value("${rating.status.exchange}")
     private String ratingStatusExchange;
 
+    @Value("${rating.update.exchange}")
+    private String ratingUpdateExchange;
+
     @Value("${rating.status.queue}")
     private String ratingStatusQueue;
+
+    @Value("${rating.update.queue}")
+    private String ratingUpdateQueue;
 
     @Autowired
     private ConnectionFactory connectionFactory;
 
-    @Bean
-    public DirectExchange directExchange() {
+    @Bean("ratingStatusExchange")
+    public DirectExchange directRatingStatusExchange() {
         return new DirectExchange(ratingStatusExchange);
+    }
+
+    @Bean("ratingUpdateExchange")
+    public DirectExchange directRatingUpdateExchange() {
+        return new DirectExchange(ratingUpdateExchange);
     }
 
     @Bean
@@ -43,13 +54,31 @@ public class RabbitMQConfiguration {
         rabbitTemplate.setMessageConverter(jackson2MessageConverter());
         return rabbitTemplate;
     }
+
+    @Bean
+    public RabbitTemplate ratingUpdateTemplate() {
+        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
+        rabbitTemplate.setRoutingKey(queueUpdate().getName());
+        rabbitTemplate.setMessageConverter(jackson2MessageConverter());
+        return rabbitTemplate;
+    }
     @Bean(name = "ratingStatusAsyncRabbitTemplate")
     public AsyncRabbitTemplate ratingStatusAsyncRabbitTemplate() {
         return new AsyncRabbitTemplate(ratingStatusTemplate());
     }
 
+    @Bean(name = "ratingUpdateAsyncRabbitTemplate")
+    public AsyncRabbitTemplate ratingUpdateAsyncRabbitTemplate() {
+        return new AsyncRabbitTemplate(ratingUpdateTemplate());
+    }
+
     @Bean
     Queue queueStatus() {
         return new Queue(ratingStatusQueue);
+    }
+
+    @Bean
+    Queue queueUpdate() {
+        return new Queue(ratingUpdateQueue);
     }
 }

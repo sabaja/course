@@ -25,20 +25,53 @@ public class RatingEventClient {
     private AsyncRabbitTemplate ratingStatusAsyncRabbitTemplate;
 
     @Autowired
-    private DirectExchange directExchange;
+    @Qualifier("ratingStatusExchange")
+    private DirectExchange directRatingStatusExchange;
 
     @Value("${rating.status.routing.key}")
-    private String routingKey;
+    private String routingRatingStatusKey;
 
+    @Autowired
+    @Qualifier("ratingUpdateAsyncRabbitTemplate")
+    private AsyncRabbitTemplate ratingUpdateAsyncRabbitTemplate;
+
+    @Autowired
+    @Qualifier("ratingUpdateExchange")
+    private DirectExchange directUpdateStatusExchange;
+
+    @Value("${rating.update.routing.key}")
+    private String routingRatingUpdateKey;
 
     @Scheduled(fixedDelay = 3000, initialDelay = 1500)
-    public RatingEventMessage sendWithFuture(RatingDto dto) {
+    public RatingEventMessage sendRatingStausWithFuture(RatingDto dto) {
         RatingEventMessage ratingEventMessage = new RatingEventMessage();
         log.info("Client starts sending Rating request");
         ListenableFuture<RatingEventMessage> listenableFuture =
                 ratingStatusAsyncRabbitTemplate.convertSendAndReceiveAsType(
-                        directExchange.getName(),
-                        routingKey,
+                        directRatingStatusExchange.getName(),
+                        routingRatingStatusKey,
+                        dto,
+                        new ParameterizedTypeReference<>() {
+                        });
+        // non blocking part
+        try {
+            ratingEventMessage = listenableFuture.get();
+            log.info("Client received Rating Message: {}", ratingEventMessage);
+        } catch (ExecutionException | InterruptedException e) {
+            log.error("Cannot get response.", e);
+        }
+        return ratingEventMessage;
+    }
+
+
+    @Scheduled(fixedDelay = 3000, initialDelay = 1500)
+    public RatingEventMessage sendRatingUpdateWithFuture(RatingDto dto) {
+        RatingEventMessage ratingEventMessage = new RatingEventMessage();
+        log.info("Client starts sending Rating request");
+        ListenableFuture<RatingEventMessage> listenableFuture =
+                ratingUpdateAsyncRabbitTemplate.convertSendAndReceiveAsType(
+                        directUpdateStatusExchange.getName(),
+                        routingRatingUpdateKey,
                         dto,
                         new ParameterizedTypeReference<>() {
                         });
