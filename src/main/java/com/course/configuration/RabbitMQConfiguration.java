@@ -1,5 +1,7 @@
 package com.course.configuration;
 
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
@@ -15,7 +17,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfiguration {
 
-    /* https://stackoverflow.com/questions/53706538/spring-amqp-rabbitmq-rpc-priority-queue */
+   /*
+      https://stackoverflow.com/questions/53706538/spring-amqp-rabbitmq-rpc-priority-queue
+      https://www.javainuse.com/messaging/rabbitmq/exchange
+    */
+
 
     @Value("${rating.status.exchange}")
     private String ratingStatusExchange;
@@ -28,6 +34,12 @@ public class RabbitMQConfiguration {
 
     @Value("${rating.update.queue}")
     private String ratingUpdateQueue;
+
+    @Value("${rating.status.routing.key}")
+    private String ratingStatusRoutingKey;
+
+    @Value("${rating.update.routing.key}")
+    private String ratingUpdateRoutingKey;
 
     @Autowired
     private ConnectionFactory connectionFactory;
@@ -50,18 +62,21 @@ public class RabbitMQConfiguration {
     @Bean
     public RabbitTemplate ratingStatusTemplate() {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-        rabbitTemplate.setRoutingKey(queueStatus().getName());
+        rabbitTemplate.setRoutingKey(ratingStatusRoutingKey);
         rabbitTemplate.setMessageConverter(jackson2MessageConverter());
+        rabbitTemplate.setExchange(directRatingStatusExchange().getName());
         return rabbitTemplate;
     }
 
     @Bean
     public RabbitTemplate ratingUpdateTemplate() {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-        rabbitTemplate.setRoutingKey(queueUpdate().getName());
+        rabbitTemplate.setRoutingKey(ratingUpdateRoutingKey);
         rabbitTemplate.setMessageConverter(jackson2MessageConverter());
+        rabbitTemplate.setExchange(directRatingUpdateExchange().getName());
         return rabbitTemplate;
     }
+
     @Bean(name = "ratingStatusAsyncRabbitTemplate")
     public AsyncRabbitTemplate ratingStatusAsyncRabbitTemplate() {
         return new AsyncRabbitTemplate(ratingStatusTemplate());
@@ -73,12 +88,22 @@ public class RabbitMQConfiguration {
     }
 
     @Bean
-    Queue queueStatus() {
+    Queue statusQueue() {
         return new Queue(ratingStatusQueue);
     }
 
     @Bean
-    Queue queueUpdate() {
+    Queue updateQueue() {
         return new Queue(ratingUpdateQueue);
+    }
+
+    @Bean
+    Binding statusBinding() {
+        return BindingBuilder.bind(statusQueue()).to(directRatingStatusExchange()).with(ratingStatusRoutingKey);
+    }
+
+    @Bean
+    Binding updateBinding() {
+        return BindingBuilder.bind(updateQueue()).to(directRatingUpdateExchange()).with(ratingUpdateRoutingKey);
     }
 }
