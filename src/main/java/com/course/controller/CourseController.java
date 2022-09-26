@@ -28,6 +28,11 @@ public class CourseController {
 
     @PutMapping("/course/rating/{id}")
     public ResponseEntity<CourseDto> putRatingCourse(@RequestBody CourseDto courseDto, @PathVariable Long id) {
-        return new ResponseEntity<>(courseService.putRatingCourses(courseDto, id), HttpStatus.OK);
+        return new ResponseEntity<>(courseService.putRatingCourse(courseDto, id), HttpStatus.OK);
+    }
+
+    @PutMapping("/course/rating-event/{id}")
+    public ResponseEntity<CourseDto> putRatingEventCourse(@RequestBody CourseDto courseDto, @PathVariable Long id) {
+        return new ResponseEntity<>(courseService.putRatingEventCourse(courseDto, id), HttpStatus.OK);
     }
 }

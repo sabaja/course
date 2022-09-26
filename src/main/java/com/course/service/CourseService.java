@@ -9,5 +9,7 @@ public interface CourseService {
 
     List<CourseDto> getCourses();
 
-    CourseDto putRatingCourses(CourseDto courseDto, Long id);
+    CourseDto putRatingCourse(CourseDto courseDto, Long id);
+
+    CourseDto putRatingEventCourse(CourseDto courseDto, Long id);
 }

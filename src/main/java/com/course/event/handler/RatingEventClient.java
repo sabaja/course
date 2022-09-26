@@ -6,6 +6,8 @@ import com.course.model.RatingDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,27 +20,58 @@ import java.util.concurrent.ExecutionException;
 @Slf4j
 @Component
 public class RatingEventClient {
+    @Autowired
+    @Qualifier("ratingStatusAsyncRabbitTemplate")
+    private AsyncRabbitTemplate ratingStatusAsyncRabbitTemplate;
 
-    private final AsyncRabbitTemplate asyncRabbitTemplate;
+    @Autowired
+    @Qualifier("ratingStatusExchange")
+    private DirectExchange directRatingStatusExchange;
 
-    private final DirectExchange directExchange;
+    @Value("${rating.status.routing.key}")
+    private String routingRatingStatusKey;
 
-    @Value("${rating.routing.key}")
-    private String routingKey;
+    @Autowired
+    @Qualifier("ratingUpdateAsyncRabbitTemplate")
+    private AsyncRabbitTemplate ratingUpdateAsyncRabbitTemplate;
 
-    public RatingEventClient(AsyncRabbitTemplate asyncRabbitTemplate, DirectExchange directExchange) {
-        this.asyncRabbitTemplate = asyncRabbitTemplate;
-        this.directExchange = directExchange;
-    }
+    @Autowired
+    @Qualifier("ratingUpdateExchange")
+    private DirectExchange directUpdateStatusExchange;
+
+    @Value("${rating.update.routing.key}")
+    private String routingRatingUpdateKey;
 
     @Scheduled(fixedDelay = 3000, initialDelay = 1500)
-    public RatingEventMessage sendWithFuture(RatingDto dto) {
+    public RatingEventMessage sendRatingStausWithFuture(RatingDto dto) {
         RatingEventMessage ratingEventMessage = new RatingEventMessage();
         log.info("Client starts sending Rating request");
         ListenableFuture<RatingEventMessage> listenableFuture =
-                asyncRabbitTemplate.convertSendAndReceiveAsType(
-                        directExchange.getName(),
-                        routingKey,
+                ratingStatusAsyncRabbitTemplate.convertSendAndReceiveAsType(
+                        directRatingStatusExchange.getName(),
+                        routingRatingStatusKey,
+                        dto,
+                        new ParameterizedTypeReference<>() {
+                        });
+        // non blocking part
+        try {
+            ratingEventMessage = listenableFuture.get();
+            log.info("Client received Rating Message: {}", ratingEventMessage);
+        } catch (ExecutionException | InterruptedException e) {
+            log.error("Cannot get response.", e);
+        }
+        return ratingEventMessage;
+    }
+
+
+    @Scheduled(fixedDelay = 3000, initialDelay = 1500)
+    public RatingEventMessage sendRatingUpdateWithFuture(RatingDto dto) {
+        RatingEventMessage ratingEventMessage = new RatingEventMessage();
+        log.info("Client starts sending Rating request");
+        ListenableFuture<RatingEventMessage> listenableFuture =
+                ratingUpdateAsyncRabbitTemplate.convertSendAndReceiveAsType(
+                        directUpdateStatusExchange.getName(),
+                        routingRatingUpdateKey,
                         dto,
                         new ParameterizedTypeReference<>() {
                         });
