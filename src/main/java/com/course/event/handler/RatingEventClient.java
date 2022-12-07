@@ -6,13 +6,13 @@ import com.course.model.RatingDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
+import org.springframework.amqp.rabbit.RabbitConverterFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.util.concurrent.ListenableFuture;
 
 import java.util.concurrent.ExecutionException;
 
@@ -46,7 +46,7 @@ public class RatingEventClient {
     public RatingEventMessage sendRatingStausWithFuture(RatingDto dto) {
         RatingEventMessage ratingEventMessage = new RatingEventMessage();
         log.info("Client starts sending Rating request");
-        ListenableFuture<RatingEventMessage> listenableFuture =
+        RabbitConverterFuture<RatingEventMessage> listenableFuture =
                 ratingStatusAsyncRabbitTemplate.convertSendAndReceiveAsType(
                         directRatingStatusExchange.getName(),
                         routingRatingStatusKey,
@@ -68,7 +68,7 @@ public class RatingEventClient {
     public RatingEventMessage sendRatingUpdateWithFuture(RatingDto dto) {
         RatingEventMessage ratingEventMessage = new RatingEventMessage();
         log.info("Client starts sending Rating request");
-        ListenableFuture<RatingEventMessage> listenableFuture =
+        RabbitConverterFuture<RatingEventMessage> listenableFuture =
                 ratingUpdateAsyncRabbitTemplate.convertSendAndReceiveAsType(
                         directUpdateStatusExchange.getName(),
                         routingRatingUpdateKey,
