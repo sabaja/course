@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.0.0</version>
+        <version>3.0.1</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com</groupId>
@@ -17,10 +17,9 @@
         <java.version>17</java.version>
         <org.mapstruct.version>1.5.3.Final</org.mapstruct.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <eureka.version>3.1.4</eureka.version>
-        <spring-cloud.version>2022.0.0-RC2</spring-cloud.version>
-        <!--        <eureka.version>3.0.0-SNAPSHOT</eureka.version>-->
-        <loubalancer.version>3.1.5</loubalancer.version>
+        <eureka.version>4.0.0</eureka.version>
+        <spring-cloud.version>2022.0.0</spring-cloud.version>
+        <loubalancer.version>4.0.0</loubalancer.version>
         <caffeine.version>3.1.2</caffeine.version>
     </properties>
     <dependencies>
