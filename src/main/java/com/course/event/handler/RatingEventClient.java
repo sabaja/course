@@ -46,19 +46,22 @@ public class RatingEventClient {
     public RatingEventMessage sendRatingStausWithFuture(RatingDto dto) {
         RatingEventMessage ratingEventMessage = new RatingEventMessage();
         log.info("Client starts sending Rating request");
-        RabbitConverterFuture<RatingEventMessage> listenableFuture =
-                ratingStatusAsyncRabbitTemplate.convertSendAndReceiveAsType(
-                        directRatingStatusExchange.getName(),
-                        routingRatingStatusKey,
-                        dto,
-                        new ParameterizedTypeReference<>() {
-                        });
-        // non blocking part
+
         try {
+            RabbitConverterFuture<RatingEventMessage> listenableFuture =
+                    ratingStatusAsyncRabbitTemplate.convertSendAndReceiveAsType(
+                            directRatingStatusExchange.getName(),
+                            routingRatingStatusKey,
+                            dto,
+                            new ParameterizedTypeReference<>() {
+                            });
+            // non blocking part
+
             ratingEventMessage = listenableFuture.get();
             log.info("Client received Rating Message: {}", ratingEventMessage);
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (InterruptedException | ExecutionException e) {
             log.error("Cannot get response.", e);
+            Thread.currentThread().interrupt();
         }
         return ratingEventMessage;
     }
@@ -68,19 +71,21 @@ public class RatingEventClient {
     public RatingEventMessage sendRatingUpdateWithFuture(RatingDto dto) {
         RatingEventMessage ratingEventMessage = new RatingEventMessage();
         log.info("Client starts sending Rating request");
-        RabbitConverterFuture<RatingEventMessage> listenableFuture =
-                ratingUpdateAsyncRabbitTemplate.convertSendAndReceiveAsType(
-                        directUpdateStatusExchange.getName(),
-                        routingRatingUpdateKey,
-                        dto,
-                        new ParameterizedTypeReference<>() {
-                        });
-        // non blocking part
         try {
+            RabbitConverterFuture<RatingEventMessage> listenableFuture =
+                    ratingUpdateAsyncRabbitTemplate.convertSendAndReceiveAsType(
+                            directUpdateStatusExchange.getName(),
+                            routingRatingUpdateKey,
+                            dto,
+                            new ParameterizedTypeReference<>() {
+                            });
+            // non blocking part
+
             ratingEventMessage = listenableFuture.get();
             log.info("Client received Rating Message: {}", ratingEventMessage);
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (InterruptedException | ExecutionException e) {
             log.error("Cannot get response.", e);
+            Thread.currentThread().interrupt();
         }
         return ratingEventMessage;
     }

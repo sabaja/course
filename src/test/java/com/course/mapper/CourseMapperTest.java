@@ -13,16 +13,16 @@ class CourseMapperTest {
     private static final long ID = 1L;
     private static final String NAME = "name";
     private static final String DESCRIPTION = "description";
-    private CourseMapper courseMapper = Mappers.getMapper(CourseMapper.class);
+    private final CourseMapper courseMapper = Mappers.getMapper(CourseMapper.class);
 
     @Test
     void courseToCourseDto() {
-     Course course = createCourse();
+        Course course = createCourse();
         final CourseDto courseDto = courseMapper.courseToCourseDto(course);
         assertNotNull(courseDto);
-        assertEquals(courseDto.getCourseId(), ID);
-        assertEquals(courseDto.getName(), NAME);
-        assertEquals(courseDto.getCourseDescription(), DESCRIPTION);
+        assertEquals(ID, courseDto.getCourseId());
+        assertEquals(NAME, courseDto.getName());
+        assertEquals(DESCRIPTION, courseDto.getCourseDescription());
     }
 
     private Course createCourse() {

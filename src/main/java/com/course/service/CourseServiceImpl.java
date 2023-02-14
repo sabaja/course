@@ -7,10 +7,10 @@ import com.course.mapper.CourseMapper;
 import com.course.model.CourseDto;
 import com.course.model.RatingDto;
 import com.course.repositories.CourseRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.util.Strings;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,19 +18,14 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class CourseServiceImpl implements CourseService {
 
-    @Autowired
-    private CourseMapper courseMapper;
-
-    @Autowired
-    private CourseRepository courseRepository;
-    @Autowired
-    private RatingEventClient ratingEventClient;
-
-    @Autowired
-    private RatingWebClient ratingWebClient;
+    private final CourseMapper courseMapper;
+    private final CourseRepository courseRepository;
+    private final RatingEventClient ratingEventClient;
+    private final RatingWebClient ratingWebClient;
 
     @Override
     public CourseDto findCourseById(Long id) {
@@ -92,7 +87,7 @@ public class CourseServiceImpl implements CourseService {
     private RatingDto modifyRatingDtoByEventClient(CourseDto courseDto, Long id) {
         log.info("[EVENTCLIENT] Updating rating of courseId: [{}] with value: [{}]", id, courseDto.getRatingValue());
         return Optional.ofNullable(this.ratingEventClient.sendRatingUpdateWithFuture(createRatingDto(courseDto)))
-                .map((message) -> createRatingDtoByRatingEventMessage(message, id))
+                .map(message -> createRatingDtoByRatingEventMessage(message, id))
                 .orElseGet(() -> RatingDto.builder().build());
     }
 
@@ -121,7 +116,7 @@ public class CourseServiceImpl implements CourseService {
     private CourseDto mappingRatingValue(CourseDto courseDto) {
         final Long courseId = courseDto.getCourseId();
         final RatingEventMessage ratingEventMessage = ratingEventClient.sendRatingStausWithFuture(createRatingEvent(courseId));
-        courseDto.setRatingValue(ratingEventMessage.getRatingValue());
+        courseDto.setRatingValue(ratingEventMessage != null ? ratingEventMessage.getRatingValue() : null);
         return courseDto;
     }
 
