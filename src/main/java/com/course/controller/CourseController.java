@@ -33,6 +33,16 @@ public class CourseController {
         return new ResponseEntity<>(courseService.getCourses(), HttpStatus.OK);
     }
 
+
+    //    https://www.bezkoder.com/spring-boot-pagination-filter-jpa-pageable/
+    @GetMapping(value = "/paging", params = {"page", "size", "sort", "sortOrder"})
+    public ResponseEntity<List<CourseDto>> getPagingCourses(@RequestParam(name = "page", defaultValue = "0") int page,
+                                                            @RequestParam(name = "size", defaultValue = "10") int size,
+                                                            @RequestParam(name = "sortBy") String sortBy,
+                                                            @RequestParam(name = "sort") String sort) {
+        return null;
+    }
+
     @PutMapping("/{id}/rating")
     public ResponseEntity<CourseDto> putRatingCourse(@RequestBody CourseDto courseDto, @PathVariable Long id) {
         var port = environment.getProperty("local.server.port");
