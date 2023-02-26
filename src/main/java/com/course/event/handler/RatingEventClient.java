@@ -14,8 +14,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.ExecutionException;
-
 
 @Slf4j
 @Component
@@ -43,7 +41,7 @@ public class RatingEventClient {
     private String routingRatingUpdateKey;
 
     @Scheduled(fixedDelay = 3000, initialDelay = 1500)
-    public RatingEventMessage sendRatingStausWithFuture(RatingDto dto) {
+    public RatingEventMessage sendRatingStatusWithFuture(RatingDto dto) {
         RatingEventMessage ratingEventMessage = new RatingEventMessage();
         log.info("Client starts sending Rating request");
 
@@ -59,7 +57,7 @@ public class RatingEventClient {
 
             ratingEventMessage = listenableFuture.get();
             log.info("Client received Rating Message: {}", ratingEventMessage);
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (Exception e) {
             log.error("Cannot get response.", e);
             Thread.currentThread().interrupt();
         }
@@ -83,7 +81,7 @@ public class RatingEventClient {
 
             ratingEventMessage = listenableFuture.get();
             log.info("Client received Rating Message: {}", ratingEventMessage);
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (Exception e) {
             log.error("Cannot get response.", e);
             Thread.currentThread().interrupt();
         }

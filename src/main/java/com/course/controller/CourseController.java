@@ -1,6 +1,9 @@
 package com.course.controller;
 
+import com.course.command.GetCoursesBaseCommand;
+import com.course.model.CourseBin;
 import com.course.model.CourseDto;
+import com.course.model.Sort;
 import com.course.service.CourseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,25 +25,28 @@ public class CourseController {
     private final Environment environment;
 
     private final CourseService courseService;
+    private final GetCoursesBaseCommand getCoursesBaseCommand;
 
     @GetMapping("/{id}")
     public ResponseEntity<CourseDto> getCourse(@PathVariable Long id) {
         return new ResponseEntity<>(courseService.findCourseById(id), HttpStatus.OK);
     }
 
-    @GetMapping("/")
-    public ResponseEntity<List<CourseDto>> getCourses() {
-        return new ResponseEntity<>(courseService.getCourses(), HttpStatus.OK);
-    }
-
-
     //    https://www.bezkoder.com/spring-boot-pagination-filter-jpa-pageable/
-    @GetMapping(value = "/paging", params = {"page", "size", "sort", "sortOrder"})
-    public ResponseEntity<List<CourseDto>> getPagingCourses(@RequestParam(name = "page", defaultValue = "0") int page,
-                                                            @RequestParam(name = "size", defaultValue = "10") int size,
-                                                            @RequestParam(name = "sortBy") String sortBy,
-                                                            @RequestParam(name = "sort") String sort) {
-        return null;
+    @GetMapping()
+    public ResponseEntity<List<CourseDto>> getPagingCourses(@RequestParam(name = "page", required = false, defaultValue = "0") int page,
+                                                            @RequestParam(name = "size", required = false, defaultValue = "10") int size,
+                                                            @RequestParam(name = "sortedBy", required = false) String sortedBy,
+                                                            @RequestParam(name = "sort", required = false, defaultValue = "ASC") Sort sort) {
+        CourseBin courseBin = CourseBin.builder()
+                .page(page)
+                .size(size)
+                .sortBy(sortedBy)
+                .sort(sort)
+                .build();
+        getCoursesBaseCommand.init(courseBin);
+        final List<CourseDto> courseDtos = getCoursesBaseCommand.doExecute();
+        return new ResponseEntity<>(courseDtos, HttpStatus.OK);
     }
 
     @PutMapping("/{id}/rating")

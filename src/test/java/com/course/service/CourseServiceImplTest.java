@@ -4,7 +4,9 @@ import com.course.entities.Course;
 import com.course.event.RatingEventMessage;
 import com.course.event.handler.RatingEventClient;
 import com.course.mapper.CourseMapper;
+import com.course.model.CourseBin;
 import com.course.model.CourseDto;
+import com.course.model.Sort;
 import com.course.repositories.CourseRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,6 +14,9 @@ import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -40,27 +45,37 @@ class CourseServiceImplTest {
         when(repository.findById(anyLong())).thenReturn(Optional.of(course));
         final CourseDto dto = createCourseDto();
         when(courseMapper.courseToCourseDto(any())).thenReturn(dto);
-        when(ratingEventClient.sendRatingStausWithFuture(any())).thenReturn(creaRatingEventMessage());
+        when(ratingEventClient.sendRatingStatusWithFuture(any())).thenReturn(creaRatingEventMessage());
 
         final CourseDto courseDto = service.findCourseById(1L);
         verify(repository, times(1)).findById(anyLong());
         verify(courseMapper, times(1)).courseToCourseDto(any());
-        verify(ratingEventClient, times(1)).sendRatingStausWithFuture(any());
+        verify(ratingEventClient, times(1)).sendRatingStatusWithFuture(any());
         assertNotNull(courseDto);
     }
 
     @Test
     void getCourses_shouldReturnCourses() {
         final List<Course> courses = List.of(createCourse());
-        when(repository.findAll()).thenReturn(courses);
+        Page<Course> page = new PageImpl<>(courses);
+        when(repository.findAll(any(Pageable.class))).thenReturn(page);
         final CourseDto dto = createCourseDto();
         when(courseMapper.courseToCourseDto(any())).thenReturn(dto);
-        when(ratingEventClient.sendRatingStausWithFuture(any())).thenReturn(creaRatingEventMessage());
-        final List<CourseDto> courseDtos = service.getCourses();
-        verify(repository, times(1)).findAll();
+        when(ratingEventClient.sendRatingStatusWithFuture(any())).thenReturn(creaRatingEventMessage());
+
+        final List<CourseDto> courseDtos = service.getCourses(createCourseBin());
+        verify(repository, times(1)).findAll(any(Pageable.class));
         verify(courseMapper, times(1)).courseToCourseDto(any());
-        verify(ratingEventClient, times(1)).sendRatingStausWithFuture(any());
+        verify(ratingEventClient, times(1)).sendRatingStatusWithFuture(any());
         assertNotNull(courseDtos);
+    }
+
+    private CourseBin createCourseBin() {
+        return CourseBin.builder()
+                .size(3)
+                .page(0)
+                .sort(Sort.ASC).build();
+
     }
 
     private Course createCourse() {

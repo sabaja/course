@@ -1,5 +1,6 @@
 package com.course.service;
 
+import com.course.model.CourseBin;
 import com.course.model.CourseDto;
 
 import java.util.List;
@@ -7,7 +8,7 @@ import java.util.List;
 public interface CourseService {
     CourseDto findCourseById(Long id);
 
-    List<CourseDto> getCourses();
+    List<CourseDto> getCourses(CourseBin bin);
 
     CourseDto putRatingCourse(CourseDto courseDto, Long id);
 

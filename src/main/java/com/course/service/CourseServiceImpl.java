@@ -4,13 +4,15 @@ import com.course.entities.Course;
 import com.course.event.RatingEventMessage;
 import com.course.event.handler.RatingEventClient;
 import com.course.mapper.CourseMapper;
+import com.course.model.CourseBin;
 import com.course.model.CourseDto;
 import com.course.model.RatingDto;
 import com.course.repositories.CourseRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,6 +24,7 @@ import java.util.Optional;
 @Service
 public class CourseServiceImpl implements CourseService {
 
+    private static final String ID = "id";
     private final CourseMapper courseMapper;
     private final CourseRepository courseRepository;
     private final RatingEventClient ratingEventClient;
@@ -39,16 +42,11 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public List<CourseDto> getCourses() {
-        final List<Course> courses = courseRepository.findAll();
-        if (CollectionUtils.isNotEmpty(courses)) {
-            return courses.stream()
-                    .filter(Objects::nonNull)
-                    .map(courseMapper::courseToCourseDto)
-                    .map(this::mappingRatingValue)
-                    .toList();
-        }
-        return List.of(createEmptyCourse());
+    public List<CourseDto> getCourses(CourseBin bin) {
+        Page<Course> pageCourses;
+        Pageable paging = PageRequest.of(bin.getPage(), bin.getSize(), createSort(bin));
+        pageCourses = courseRepository.findAll(paging);
+        return createCourseDtos(pageCourses);
     }
 
     @Override
@@ -65,6 +63,29 @@ public class CourseServiceImpl implements CourseService {
             return modifyRatingCourse(courseDto, id, Boolean.TRUE);
         }
         return createEmptyCourse();
+    }
+
+    private Sort createSort(CourseBin bin) {
+        final String sortBy = bin.getSortBy();
+        com.course.model.Sort sort = bin.getSort();
+
+        if (StringUtils.isNotBlank(sortBy)) {
+            return sort.equals(com.course.model.Sort.DESC) ? Sort.by(sortBy).descending() : Sort.by(sortBy);
+        }
+        return sort.equals(com.course.model.Sort.DESC) ? Sort.by(ID).descending() : Sort.by(ID);
+    }
+
+    private List<CourseDto> createCourseDtos(Page<Course> pageCourses) {
+        return Optional.ofNullable(pageCourses)
+                .map(Slice::getContent)
+                .stream()
+                .filter(Objects::nonNull)
+                .toList()
+                .stream()
+                .flatMap(courses -> courses.stream()
+                        .map(courseMapper::courseToCourseDto)
+                        .map(this::mappingRatingValue)
+                ).toList();
     }
 
     private CourseDto modifyRatingCourse(CourseDto courseDto, Long id) {
@@ -115,7 +136,7 @@ public class CourseServiceImpl implements CourseService {
 
     private CourseDto mappingRatingValue(CourseDto courseDto) {
         final Long courseId = courseDto.getCourseId();
-        final RatingEventMessage ratingEventMessage = ratingEventClient.sendRatingStausWithFuture(createRatingEvent(courseId));
+        final RatingEventMessage ratingEventMessage = ratingEventClient.sendRatingStatusWithFuture(createRatingEvent(courseId));
         courseDto.setRatingValue(ratingEventMessage != null ? ratingEventMessage.getRatingValue() : null);
         return courseDto;
     }
